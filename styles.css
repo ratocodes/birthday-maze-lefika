@@ -1,0 +1,7 @@
+.player {
+    background:fixed !important; /* remove pink circle */
+    background-image: url('backgroundimage.jpg');
+    background-size: cover;
+    border-radius: 0;
+  }
+  

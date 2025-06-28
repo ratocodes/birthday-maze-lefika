@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Birthday Maze Game</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: url('backgroundimage.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  #game {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    width: 100vw;
+    height: 100vh;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .cell {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .wall {
+    background-image:none ;
+  }
+
+  .path {
+    background: #110e0e77;
+  }
+
+  .goal {
+    background: #ca0e14;
+  }
+
+  .task {
+    background-size: 50%;
+    background: #a4d4ff;
+    border: 2px solid #0047ab;
+  }
+
+  .player {
+    background-image: url('Mikasa Sprite.jpg'); /* Abale's avatar image */
+    background-size: 97px;
+    background-position: center;
+    border-radius: 20%;
+    border: 1px solid rgba(255, 255, 255, 0.056);
+  }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align:center;">GO AHEAD AND LOOK FOR YUR GIFT, you twink!</h2>
+<div id="game"></div>
+<p style="text-align:center;">Use arrow keys to move.</p>
+
+</audio> 
+
+<script>
+const gameElement = document.getElementById('game');
+
+// Maze layout: 0 = path, 1 = wall, 2 = task checkpoint, 3 = goal
+const maze = [
+  [1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,1,0,0,2,0,1],
+  [1,0,1,0,1,0,1,1,0,1],
+  [1,0,1,0,0,0,0,1,0,1],
+  [1,0,1,1,1,1,0,1,0,1],
+  [1,0,0,2,0,1,0,2,0,1],
+  [1,1,1,1,0,1,1,1,0,1],
+  [1,0,1,0,0,0,0,1,0,1],
+  [1,0,0,0,2,0,0,3,0,1],
+  [1,1,1,1,1,1,1,1,1,1]
+];
+
+let playerPos = { x: 1, y: 1 };
+let tasksCompleted = 0;
+
+// Step 3: Setup ding sound effect (add your own ding.mp3 file)
+const dingSound = new Audio('sounds/clicksound.mp3');
+
+
+
+function drawMaze() {
+  gameElement.innerHTML = '';
+  for(let y = 0; y < maze.length; y++) {
+    for(let x = 0; x < maze[y].length; x++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      switch(maze[y][x]) {
+        case 1: cell.classList.add('wall'); break;
+        case 0: cell.classList.add('path'); break;
+        case 2: cell.classList.add('task'); break;
+        case 3: cell.classList.add('goal'); break;
+      }
+      if (playerPos.x === x && playerPos.y === y) {
+        cell.classList.add('player');
+      }
+      gameElement.appendChild(cell);
+    }
+  }
+}
+
+function isWalkable(x, y) {
+  return maze[y][x] !== 1;
+}
+
+function checkTask(x, y) {
+  if(maze[y][x] === 2) {
+    let taskNumber = tasksCompleted + 1;
+    let question = '';
+    let correctAnswers = [];
+    let failMessage = 'Haha, nice try. Try again, softie!';
+
+    switch(taskNumber) {
+      case 1:
+        question = 'You say you’re nonchalant, but prove your soft side! What’s the cutest animal on Earth?';
+        correctAnswers = ['puppy', 'dog', 'puppies', 'dogs'];
+        break;
+      case 2:
+        question = 'Goal time! Who’s your favorite team? (Hint: They wear red and are from Manchester)';
+        correctAnswers = ['man united', 'manchester united', 'manchester utd'];
+        break;
+      case 3:
+        question = 'Gym check! How many days a week do you hit the weights? (Type a number)';
+        correctAnswers = ['3', '4', '5', '6', '7']; // adjust as you want
+        break;
+      case 4:
+        question = 'You love making fun of me, so here’s one for you: What do you call Tanya when she can’t stop laughing?';
+        correctAnswers = ['giggle monster', 'laughing queen', 'silly tanya']; // customize with your fave nickname
+        break;
+      default:
+        question = 'You found a bonus task! Say something nice about me.';
+        correctAnswers = ['you are awesome', 'you rock', 'best friend'];
+    }
+
+    let answer = prompt(question);
+    if (!answer) {
+      alert('Come on, don’t be shy! Try again.');
+      return false;
+    }
+    answer = answer.trim().toLowerCase();
+
+    if(correctAnswers.includes(answer)) {
+      alert('Correct! You’re awesome ❤️');
+      dingSound.play();  // Step 3: Play sound on correct answer
+      maze[y][x] = 0; // Mark task done so it won't trigger again
+      tasksCompleted++;
+    } else {
+      alert(failMessage);
+      return false;
+    }
+  }
+  return true;
+}
+
+function checkGoal(x, y) {
+  if(maze[y][x] === 3) {
+    if(tasksCompleted >= 3) {
+      alert('🎉 Congratulations! You found the birthday present! Happy Belated Birthday! 🎉');
+    } else {
+      alert('You need to complete all tasks before getting the present!');
+      return false;
+    }
+  }
+  return true;
+}
+
+window.addEventListener('keydown', (e) => {
+  let newX = playerPos.x;
+  let newY = playerPos.y;
+
+  if(e.key === 'ArrowUp') newY--;
+  else if(e.key === 'ArrowDown') newY++;
+  else if(e.key === 'ArrowLeft') newX--;
+  else if(e.key === 'ArrowRight') newX++;
+
+  if(isWalkable(newX, newY)) {
+    if(checkTask(newX, newY) && checkGoal(newX, newY)) {
+      playerPos = {x: newX, y: newY};
+    }
+  }
+
+  drawMaze();
+});
+
+drawMaze();
+
+
+  const bgMusic = document.getElementById('bgMusic');
+  const clickSound = document.getElementById('clickSound');
+
+  // Start background music after user interaction (e.g., key press)
+  window.addEventListener('keydown', () => {
+    if (bgMusic.paused) {
+      bgMusic.volume = 5.3; // adjust volume as needed
+      bgMusic.play().catch(e => console.log("Autoplay blocked until interaction."));
+    }
+  });
+
+  // Add a general click sound to all clicks
+  document.addEventListener('click', () => {
+    clickSound.currentTime = 0;
+    clickSound.play();
+  });
+</script>
+
+</script>
+
+<!-- Background Music and Click Sound -->
+<audio id="bgMusic" src="sounds/backgroundmusic.mp3" loop preload="auto"></audio>
+<audio id="clickSound" src="sounds/clicksound.mp3" preload="auto"></audio>
+
+</body>
+</html>
